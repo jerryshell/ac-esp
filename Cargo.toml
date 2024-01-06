@@ -1,0 +1,24 @@
+[package]
+name = "ac-esp"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+anyhow = "*"
+windows = { version = "*", features = [
+    "Win32_Foundation",
+    "Win32_Graphics_Gdi",
+    "Win32_System_LibraryLoader",
+    "Win32_System_SystemServices",
+    "Win32_UI_WindowsAndMessaging",
+] }
+windows-ez-overlay = { git = "https://github.com/jerryshell/windows-ez-overlay.git" }
+
+[profile.release]
+lto = true
+strip = true
+panic = "abort"
+codegen-units = 1
