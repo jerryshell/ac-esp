@@ -1,6 +1,6 @@
 # ![logo](img/logo.png) AssaultCube ESP DLL with Rust
 
-Bilibili Video: *TODO*
+Bilibili Video: [https://www.bilibili.com/video/BV1dN4y1e7Me](https://www.bilibili.com/video/BV1dN4y1e7Me)
 
 Applicable Game Version: **1.3.0.2**
 
