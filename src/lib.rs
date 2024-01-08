@@ -106,8 +106,7 @@ fn run() -> Result<()> {
 }
 
 #[no_mangle]
-#[allow(non_snake_case)]
-extern "system" fn DllMain(_dll_module: HINSTANCE, call_reason: u32, _: *mut ()) -> bool {
+extern "system" fn DllMain(_dll_module: HINSTANCE, call_reason: u32, _reserved: *mut ()) -> bool {
     if call_reason == DLL_PROCESS_ATTACH {
         std::thread::spawn(move || {
             let _ = run();
