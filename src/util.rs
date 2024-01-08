@@ -41,6 +41,13 @@ pub fn build_ptr(base: u32, offset: u32) -> *const u32 {
     (base + offset) as *const u32
 }
 
+pub fn build_entity_base_ptr(entity_list_base_ptr: *const u32, offset: u32) -> *const u32 {
+    unsafe {
+        let entity_list_base_ptr_deref = *entity_list_base_ptr;
+        build_ptr(entity_list_base_ptr_deref, offset)
+    }
+}
+
 pub fn read_i32(base_ptr: *const u32, offset: u32) -> i32 {
     unsafe {
         let base_ptr_deref = *base_ptr;
