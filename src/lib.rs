@@ -31,6 +31,7 @@ fn run() -> Result<()> {
             1000 / 30,
             true,
         );
+        overlay.pen_width = 2;
         let _ = overlay.window_loop();
     });
 

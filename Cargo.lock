@@ -39,7 +39,7 @@ dependencies = [
 [[package]]
 name = "windows-ez-overlay"
 version = "0.1.0"
-source = "git+https://github.com/jerryshell/windows-ez-overlay.git#93d9e1405b9172a4d3f6a9a174e543a1d7e4f912"
+source = "git+https://github.com/jerryshell/windows-ez-overlay.git#129369d409fc75ea48d6817b0129d844461b1f57"
 dependencies = [
  "anyhow",
  "windows",
