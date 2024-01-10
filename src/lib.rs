@@ -42,58 +42,77 @@ fn run() -> Result<()> {
 
     let entity_list_base_ptr = util::build_ptr(module_base_addr, offset::ENTITY_LIST);
 
+    read_game_data_loop(
+        module_base_addr,
+        entity_list_base_ptr,
+        window_width,
+        window_height,
+        draw_rect_list,
+    );
+
+    Ok(())
+}
+
+fn read_game_data_loop(
+    module_base_addr: u32,
+    entity_list_base_ptr: *const u32,
+    window_width: i32,
+    window_height: i32,
+    draw_rect_list: Arc<RwLock<Vec<RECT>>>,
+) {
     loop {
         let player_count = util::read_player_count(module_base_addr);
         let view_matrix = util::read_view_matrix(module_base_addr);
 
-        let mut new_draw_rect_list = Vec::with_capacity(player_count as usize);
-        for i in 1..player_count {
-            let entity_base_ptr = util::build_entity_base_ptr(entity_list_base_ptr, i * 0x4);
-            let entity = model::Entity::new(entity_base_ptr);
+        let new_draw_rect_list = (1..player_count)
+            .filter_map(|i| {
+                let entity_base_ptr = util::build_entity_base_ptr(entity_list_base_ptr, i * 0x4);
+                let entity = model::Entity::new(entity_base_ptr);
 
-            if entity.health() <= 0 {
-                continue;
-            }
+                if entity.health() <= 0 {
+                    return None;
+                }
 
-            let mut head_screen_pos = model::Vec2::default();
-            let success = util::world_to_screen(
-                entity.head_position(),
-                &mut head_screen_pos,
-                view_matrix,
-                window_width,
-                window_height,
-            );
-            if !success {
-                continue;
-            }
+                let mut head_screen_pos = model::Vec2::default();
+                let success = util::world_to_screen(
+                    entity.head_position(),
+                    &mut head_screen_pos,
+                    view_matrix,
+                    window_width,
+                    window_height,
+                );
+                if !success {
+                    return None;
+                }
 
-            let mut feet_screen_pos = model::Vec2::default();
-            let success = util::world_to_screen(
-                entity.feet_position(),
-                &mut feet_screen_pos,
-                view_matrix,
-                window_width,
-                window_height,
-            );
-            if !success {
-                continue;
-            }
+                let mut feet_screen_pos = model::Vec2::default();
+                let success = util::world_to_screen(
+                    entity.feet_position(),
+                    &mut feet_screen_pos,
+                    view_matrix,
+                    window_width,
+                    window_height,
+                );
+                if !success {
+                    return None;
+                }
 
-            let rect_height = (feet_screen_pos.y - head_screen_pos.y) as i32;
-            let rect_width = rect_height / 2;
-            let rect_left = head_screen_pos.x as i32 - rect_width / 2;
-            let rect_top = head_screen_pos.y as i32;
-            let rect_right = rect_left + rect_width;
-            let rect_bottom = rect_top + rect_height;
-            let rect = RECT {
-                left: rect_left,
-                right: rect_right,
-                top: rect_top,
-                bottom: rect_bottom,
-            };
+                let rect_height = (feet_screen_pos.y - head_screen_pos.y) as i32;
+                let rect_width = rect_height / 2;
+                let rect_left = head_screen_pos.x as i32 - rect_width / 2;
+                let rect_top = head_screen_pos.y as i32;
+                let rect_right = rect_left + rect_width;
+                let rect_bottom = rect_top + rect_height;
+                let rect = RECT {
+                    left: rect_left,
+                    right: rect_right,
+                    top: rect_top,
+                    bottom: rect_bottom,
+                };
 
-            new_draw_rect_list.push(rect);
-        }
+                Some(rect)
+            })
+            .collect::<Vec<RECT>>();
 
         {
             let mut draw_rect_list = draw_rect_list.write().unwrap();
