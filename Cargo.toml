@@ -9,11 +9,8 @@ crate-type = ["cdylib"]
 [dependencies]
 anyhow = "*"
 windows = { version = "*", features = [
-    "Win32_Foundation",
-    "Win32_Graphics_Gdi",
     "Win32_System_LibraryLoader",
     "Win32_System_SystemServices",
-    "Win32_UI_WindowsAndMessaging",
 ] }
 windows-ez-overlay = { git = "https://github.com/jerryshell/windows-ez-overlay.git" }
 
