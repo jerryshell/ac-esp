@@ -32,6 +32,7 @@ cross build --release --target=i686-pc-windows-gnu
 
 ## Related
 
+- [ac-aimbot](https://github.com/jerryshell/ac-aimbot)
 - [windows-ez-overlay](https://github.com/jerryshell/windows-ez-overlay)
 
 ## References
