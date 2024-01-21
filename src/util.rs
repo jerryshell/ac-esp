@@ -48,19 +48,14 @@ pub fn build_entity_base_ptr(entity_list_base_ptr: *const u32, offset: u32) -> *
     }
 }
 
-pub fn read_i32(base_ptr: *const u32, offset: u32) -> i32 {
+pub fn read_memory<T>(base_ptr: *const u32, offset: u32) -> T
+where
+    T: Copy,
+{
     unsafe {
         let base_ptr_deref = *base_ptr;
-        let i32_ptr = (base_ptr_deref + offset) as *const i32;
-        *i32_ptr
-    }
-}
-
-pub fn read_f32(base_ptr: *const u32, offset: u32) -> f32 {
-    unsafe {
-        let base_ptr_deref = *base_ptr;
-        let f32_ptr = (base_ptr_deref + offset) as *const f32;
-        *f32_ptr
+        let data_ptr = (base_ptr_deref + offset) as *const T;
+        *data_ptr
     }
 }
 

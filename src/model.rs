@@ -22,22 +22,22 @@ impl Entity {
     }
 
     pub fn health(&self) -> i32 {
-        util::read_i32(self.base_ptr, offset::HEALTH)
+        util::read_memory::<i32>(self.base_ptr, offset::HEALTH)
     }
 
     pub fn head_position(&self) -> Vec3 {
         Vec3 {
-            x: util::read_f32(self.base_ptr, offset::HEAD_POSITION_X),
-            y: util::read_f32(self.base_ptr, offset::HEAD_POSITION_Y),
-            z: util::read_f32(self.base_ptr, offset::HEAD_POSITION_Z),
+            x: util::read_memory::<f32>(self.base_ptr, offset::HEAD_POSITION_X),
+            y: util::read_memory::<f32>(self.base_ptr, offset::HEAD_POSITION_Y),
+            z: util::read_memory::<f32>(self.base_ptr, offset::HEAD_POSITION_Z),
         }
     }
 
     pub fn feet_position(&self) -> Vec3 {
         Vec3 {
-            x: util::read_f32(self.base_ptr, offset::FEET_POSITION_X),
-            y: util::read_f32(self.base_ptr, offset::FEET_POSITION_Y),
-            z: util::read_f32(self.base_ptr, offset::FEET_POSITION_Z),
+            x: util::read_memory::<f32>(self.base_ptr, offset::FEET_POSITION_X),
+            y: util::read_memory::<f32>(self.base_ptr, offset::FEET_POSITION_Y),
+            z: util::read_memory::<f32>(self.base_ptr, offset::FEET_POSITION_Z),
         }
     }
 }
