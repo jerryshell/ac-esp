@@ -13,6 +13,8 @@ use windows::{
 };
 
 fn run() -> Result<()> {
+    let refresh_interval_ms = 1000 / 60;
+
     let draw_rect_list = Arc::new(RwLock::new(Vec::<RECT>::with_capacity(32)));
 
     let game_window = unsafe { FindWindowA(None, s!("AssaultCube")) };
@@ -28,7 +30,7 @@ fn run() -> Result<()> {
             window_info.rcClient.right,
             window_info.rcClient.bottom,
             draw_rect_list_clone,
-            1000 / 30,
+            refresh_interval_ms,
             true,
         );
         overlay.pen_width = 2;
@@ -48,6 +50,7 @@ fn run() -> Result<()> {
         window_width,
         window_height,
         draw_rect_list,
+        refresh_interval_ms,
     );
 
     Ok(())
@@ -59,8 +62,11 @@ fn read_game_data_loop(
     window_width: i32,
     window_height: i32,
     draw_rect_list: Arc<RwLock<Vec<RECT>>>,
+    refresh_interval_ms: u64,
 ) {
     loop {
+        let start = std::time::Instant::now();
+
         let player_count = util::read_player_count(module_base_addr);
         let view_matrix = util::read_view_matrix(module_base_addr);
 
@@ -120,7 +126,13 @@ fn read_game_data_loop(
             draw_rect_list.extend(new_draw_rect_list);
         }
 
-        std::thread::sleep(std::time::Duration::from_millis(1000 / 30));
+        let delta = start.elapsed();
+        let delta_ms = delta.as_millis() as u64;
+        if refresh_interval_ms > delta_ms {
+            std::thread::sleep(std::time::Duration::from_millis(
+                refresh_interval_ms - delta_ms,
+            ));
+        }
     }
 }
 
