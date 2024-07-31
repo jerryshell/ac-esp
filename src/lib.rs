@@ -17,7 +17,7 @@ fn run() -> Result<()> {
 
     let draw_rect_list = Arc::new(RwLock::new(Vec::<RECT>::with_capacity(32)));
 
-    let game_window = unsafe { FindWindowA(None, s!("AssaultCube")) };
+    let game_window = unsafe { FindWindowA(None, s!("AssaultCube")) }?;
 
     let mut window_info = WINDOWINFO::default();
     unsafe { GetWindowInfo(game_window, &mut window_info) }?;
