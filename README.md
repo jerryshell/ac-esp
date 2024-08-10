@@ -11,7 +11,7 @@ Applicable Game Version: **1.3.0.2**
 ## How to use
 
 1. Download `ac_esp.dll` from [releases](https://github.com/jerryshell/ac-esp/releases)
-2. Run AssaultCube
+2. Run AssaultCube in **Windowed Mode**
 3. Inject `ac_esp.dll` into AssaultCube ( You can do this with [Process Hacker](https://processhacker.sourceforge.io) )
 
 ## Build DLL
