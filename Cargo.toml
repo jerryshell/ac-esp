@@ -12,7 +12,7 @@ windows = { version = "*", features = [
     "Win32_System_LibraryLoader",
     "Win32_System_SystemServices",
 ] }
-windows-ez-overlay = { git = "https://github.com/jerryshell/windows-ez-overlay.git" }
+windows-ez-overlay = { git = "https://github.com/jerryshell/windows-ez-overlay" }
 
 [profile.release]
 lto = true
