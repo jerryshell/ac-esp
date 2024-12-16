@@ -81,34 +81,30 @@ fn read_game_data_loop(
                     return None;
                 }
 
-                let mut head_screen_pos = model::Vec2::default();
-                let success = util::world_to_screen(
+                let head_screen_position = match util::world_to_screen(
                     entity.head_position(),
-                    &mut head_screen_pos,
                     view_matrix,
                     window_width,
                     window_height,
-                );
-                if !success {
-                    return None;
-                }
+                ) {
+                    Some(screen_position) => screen_position,
+                    None => return None,
+                };
 
-                let mut feet_screen_pos = model::Vec2::default();
-                let success = util::world_to_screen(
+                let feet_screen_position = match util::world_to_screen(
                     entity.feet_position(),
-                    &mut feet_screen_pos,
                     view_matrix,
                     window_width,
                     window_height,
-                );
-                if !success {
-                    return None;
-                }
+                ) {
+                    Some(screen_position) => screen_position,
+                    None => return None,
+                };
 
-                let rect_height = (feet_screen_pos.y - head_screen_pos.y) as i32;
+                let rect_height = (feet_screen_position.y - head_screen_position.y) as i32;
                 let rect_width = rect_height / 2;
-                let rect_left = head_screen_pos.x as i32 - rect_width / 2;
-                let rect_top = head_screen_pos.y as i32;
+                let rect_left = head_screen_position.x as i32 - rect_width / 2;
+                let rect_top = head_screen_position.y as i32;
                 let rect_right = rect_left + rect_width;
                 let rect_bottom = rect_top + rect_height;
                 let rect = RECT {

@@ -1,28 +1,27 @@
 use crate::{model, offset};
 
 pub fn world_to_screen(
-    position: model::Vec3,
-    screen: &mut model::Vec2,
+    world_position: model::Vec3,
     view_matrix: [f32; 16],
     window_width: i32,
     window_height: i32,
-) -> bool {
-    let w = position.x * view_matrix[3]
-        + position.y * view_matrix[7]
-        + position.z * view_matrix[11]
+) -> Option<model::Vec2> {
+    let w = world_position.x * view_matrix[3]
+        + world_position.y * view_matrix[7]
+        + world_position.z * view_matrix[11]
         + view_matrix[15];
 
     if w < 0.001 {
-        return false;
+        return None;
     }
 
-    let x = position.x * view_matrix[0]
-        + position.y * view_matrix[4]
-        + position.z * view_matrix[8]
+    let x = world_position.x * view_matrix[0]
+        + world_position.y * view_matrix[4]
+        + world_position.z * view_matrix[8]
         + view_matrix[12];
-    let y = position.x * view_matrix[1]
-        + position.y * view_matrix[5]
-        + position.z * view_matrix[9]
+    let y = world_position.x * view_matrix[1]
+        + world_position.y * view_matrix[5]
+        + world_position.z * view_matrix[9]
         + view_matrix[13];
 
     let nx = x / w;
@@ -31,10 +30,12 @@ pub fn world_to_screen(
     let window_center_x = (window_width / 2) as f32;
     let window_center_y = (window_height / 2) as f32;
 
-    screen.x = window_center_x + (window_center_x * nx);
-    screen.y = window_center_y - (window_center_y * ny);
+    let screen_position = model::Vec2 {
+        x: window_center_x + (window_center_x * nx),
+        y: window_center_y - (window_center_y * ny),
+    };
 
-    true
+    Some(screen_position)
 }
 
 pub fn build_ptr(base: u32, offset: u32) -> *const u32 {
