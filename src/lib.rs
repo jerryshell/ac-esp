@@ -5,6 +5,7 @@ mod util;
 use anyhow::Result;
 use std::{
     sync::{Arc, RwLock},
+    thread,
     time::{Duration, Instant},
 };
 use windows::{
@@ -27,7 +28,7 @@ fn run() -> Result<()> {
     unsafe { GetWindowInfo(game_window, &mut window_info) }?;
 
     let draw_rect_list_clone = Arc::clone(&draw_rect_list);
-    std::thread::spawn(move || {
+    thread::spawn(move || {
         let mut overlay = windows_ez_overlay::Overlay::new(
             window_info.rcClient.left,
             window_info.rcClient.top,
@@ -125,7 +126,7 @@ fn read_game_data_loop(
         }
 
         let timeout = tick_rate.saturating_sub(last_tick.elapsed());
-        std::thread::sleep(timeout);
+        thread::sleep(timeout);
         last_tick = Instant::now();
     }
 }
@@ -133,7 +134,7 @@ fn read_game_data_loop(
 #[no_mangle]
 extern "system" fn DllMain(_dll_module: HINSTANCE, call_reason: u32, _reserved: *mut ()) -> bool {
     if call_reason == DLL_PROCESS_ATTACH {
-        std::thread::spawn(move || {
+        thread::spawn(move || {
             let _ = run();
         });
     }
