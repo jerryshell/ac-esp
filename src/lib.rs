@@ -123,8 +123,7 @@ fn read_game_data_loop(
             })
             .collect::<Vec<RECT>>();
 
-        {
-            let mut draw_rect_list = draw_rect_list.write().unwrap();
+        if let Ok(mut draw_rect_list) = draw_rect_list.write() {
             draw_rect_list.clear();
             draw_rect_list.extend(new_draw_rect_list);
         }
