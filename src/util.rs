@@ -1,4 +1,4 @@
-use crate::{model, offset};
+use crate::model;
 
 pub fn world_to_screen(
     world_position: model::Vec3,
@@ -38,10 +38,6 @@ pub fn world_to_screen(
     Some(screen_position)
 }
 
-pub fn build_ptr(base: u32, offset: u32) -> *const u32 {
-    (base + offset) as *const u32
-}
-
 pub fn read_memory<T>(base_addr: u32, offset: u32) -> T
 where
     T: Copy,
@@ -50,14 +46,4 @@ where
         let data_ptr = (base_addr + offset) as *const T;
         *data_ptr
     }
-}
-
-pub fn read_player_count(module_base_addr: u32) -> u32 {
-    let player_count_ptr = build_ptr(module_base_addr, offset::PLAYER_COUNT);
-    unsafe { *player_count_ptr }
-}
-
-pub fn read_view_matrix(module_base_addr: u32) -> [f32; 16] {
-    let view_matrix_ptr = (module_base_addr + offset::VIEW_MATRIX) as *const [f32; 16];
-    unsafe { *view_matrix_ptr }
 }

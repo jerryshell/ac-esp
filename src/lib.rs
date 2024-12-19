@@ -47,8 +47,7 @@ fn run() -> Result<()> {
 
     let module_base_addr = unsafe { GetModuleHandleA(s!("ac_client.exe")).map(|h| h.0 as u32) }?;
 
-    let entity_list_base_ptr = util::build_ptr(module_base_addr, offset::ENTITY_LIST);
-    let entity_list_base_addr = unsafe { *entity_list_base_ptr };
+    let entity_list_base_addr = util::read_memory::<u32>(module_base_addr, offset::ENTITY_LIST);
 
     read_game_data_loop(
         module_base_addr,
@@ -71,14 +70,13 @@ fn read_game_data_loop(
     let tick_rate = Duration::from_millis(1000 / FRAME_RATE);
     let mut last_tick = Instant::now();
     loop {
-        let player_count = util::read_player_count(module_base_addr);
-        let view_matrix = util::read_view_matrix(module_base_addr);
+        let player_count = util::read_memory::<u32>(module_base_addr, offset::PLAYER_COUNT);
+        let view_matrix = util::read_memory::<[f32; 16]>(module_base_addr, offset::VIEW_MATRIX);
 
         let new_draw_rect_list = (1..player_count)
             .filter_map(|i| {
                 let entity_offset = i * 0x4;
-                let entity_base_ptr = util::build_ptr(entity_list_base_addr, entity_offset);
-                let entity_base = unsafe { *entity_base_ptr };
+                let entity_base = util::read_memory::<u32>(entity_list_base_addr, entity_offset);
                 let entity = model::Entity::new(entity_base);
 
                 if entity.health() <= 0 {
