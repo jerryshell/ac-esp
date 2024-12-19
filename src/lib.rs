@@ -78,7 +78,9 @@ fn read_game_data_loop(
                 let entity_offset = i * 0x4;
                 let entity_base_addr =
                     util::read_memory::<u32>(entity_list_base_addr, entity_offset);
-                let entity = model::Entity::new(entity_base_addr);
+                let entity = model::Entity {
+                    base_addr: entity_base_addr,
+                };
 
                 if entity.health() <= 0 {
                     return None;
