@@ -42,8 +42,6 @@ pub fn read_memory<T>(base_addr: u32, offset: u32) -> T
 where
     T: Copy,
 {
-    unsafe {
-        let data_ptr = (base_addr + offset) as *const T;
-        *data_ptr
-    }
+    let data_ptr = (base_addr + offset) as *const T;
+    unsafe { *data_ptr }
 }
