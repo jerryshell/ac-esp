@@ -49,13 +49,12 @@ pub fn build_entity_base_ptr(entity_list_base_ptr: *const u32, offset: u32) -> *
     }
 }
 
-pub fn read_memory<T>(base_ptr: *const u32, offset: u32) -> T
+pub fn read_memory<T>(base_addr: u32, offset: u32) -> T
 where
     T: Copy,
 {
     unsafe {
-        let base_ptr_deref = *base_ptr;
-        let data_ptr = (base_ptr_deref + offset) as *const T;
+        let data_ptr = (base_addr + offset) as *const T;
         *data_ptr
     }
 }

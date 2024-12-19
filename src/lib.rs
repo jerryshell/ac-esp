@@ -75,8 +75,11 @@ fn read_game_data_loop(
 
         let new_draw_rect_list = (1..player_count)
             .filter_map(|i| {
-                let entity_base_ptr = util::build_entity_base_ptr(entity_list_base_ptr, i * 0x4);
-                let entity = model::Entity::new(entity_base_ptr);
+                let entity_offset = i * 0x4;
+                let entity_base_ptr =
+                    util::build_entity_base_ptr(entity_list_base_ptr, entity_offset);
+                let entity_base = unsafe { *entity_base_ptr };
+                let entity = model::Entity::new(entity_base);
 
                 if entity.health() <= 0 {
                     return None;
