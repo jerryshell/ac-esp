@@ -75,51 +75,39 @@ fn read_game_data_loop(
 
         let new_draw_rect_list = (1..player_count)
             .filter_map(|i| {
-                let entity_offset = i * 0x4;
-                let entity_base_addr =
-                    util::read_memory::<u32>(entity_list_base_addr, entity_offset);
                 let entity = model::Entity {
-                    base_addr: entity_base_addr,
+                    base_addr: util::read_memory::<u32>(entity_list_base_addr, i * 0x4),
                 };
 
                 if entity.health() <= 0 {
                     return None;
                 }
 
-                let head_screen_position = match util::world_to_screen(
+                let head_screen_position = util::world_to_screen(
                     entity.head_position(),
                     view_matrix,
                     window_width,
                     window_height,
-                ) {
-                    Some(screen_position) => screen_position,
-                    None => return None,
-                };
+                )?;
 
-                let feet_screen_position = match util::world_to_screen(
+                let feet_screen_position = util::world_to_screen(
                     entity.feet_position(),
                     view_matrix,
                     window_width,
                     window_height,
-                ) {
-                    Some(screen_position) => screen_position,
-                    None => return None,
-                };
+                )?;
 
-                let rect_height = (feet_screen_position.y - head_screen_position.y) as i32;
-                let rect_width = rect_height / 2;
-                let rect_left = head_screen_position.x as i32 - rect_width / 2;
-                let rect_top = head_screen_position.y as i32;
-                let rect_right = rect_left + rect_width;
-                let rect_bottom = rect_top + rect_height;
-                let rect = RECT {
-                    left: rect_left,
-                    right: rect_right,
-                    top: rect_top,
-                    bottom: rect_bottom,
-                };
+                let height = (feet_screen_position.y - head_screen_position.y) as i32;
+                let width = height / 2;
+                let left = head_screen_position.x as i32 - width / 2;
+                let top = head_screen_position.y as i32;
 
-                Some(rect)
+                Some(RECT {
+                    left,
+                    right: left + width,
+                    top,
+                    bottom: top + height,
+                })
             })
             .collect::<Vec<RECT>>();
 
