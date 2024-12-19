@@ -48,10 +48,11 @@ fn run() -> Result<()> {
     let module_base_addr = unsafe { GetModuleHandleA(s!("ac_client.exe")).map(|h| h.0 as u32) }?;
 
     let entity_list_base_ptr = util::build_ptr(module_base_addr, offset::ENTITY_LIST);
+    let entity_list_base_addr = unsafe { *entity_list_base_ptr };
 
     read_game_data_loop(
         module_base_addr,
-        entity_list_base_ptr,
+        entity_list_base_addr,
         window_width,
         window_height,
         draw_rect_list,
@@ -62,7 +63,7 @@ fn run() -> Result<()> {
 
 fn read_game_data_loop(
     module_base_addr: u32,
-    entity_list_base_ptr: *const u32,
+    entity_list_base_addr: u32,
     window_width: i32,
     window_height: i32,
     draw_rect_list: Arc<RwLock<Vec<RECT>>>,
@@ -76,8 +77,7 @@ fn read_game_data_loop(
         let new_draw_rect_list = (1..player_count)
             .filter_map(|i| {
                 let entity_offset = i * 0x4;
-                let entity_base_ptr =
-                    util::build_entity_base_ptr(entity_list_base_ptr, entity_offset);
+                let entity_base_ptr = util::build_ptr(entity_list_base_addr, entity_offset);
                 let entity_base = unsafe { *entity_base_ptr };
                 let entity = model::Entity::new(entity_base);
 
