@@ -17,22 +17,24 @@ pub struct Entity {
 
 impl Entity {
     pub fn health(&self) -> i32 {
-        util::read_memory::<i32>(self.base_addr, offset::HEALTH)
+        util::read_memory::<i32>(self.base_addr, offset::ENTITY_HEALTH)
     }
 
     pub fn head_position(&self) -> Vec3 {
+        let xyz = util::read_memory::<[f32; 3]>(self.base_addr, offset::ENTITY_HEAD_POSITION);
         Vec3 {
-            x: util::read_memory::<f32>(self.base_addr, offset::HEAD_POSITION_X),
-            y: util::read_memory::<f32>(self.base_addr, offset::HEAD_POSITION_Y),
-            z: util::read_memory::<f32>(self.base_addr, offset::HEAD_POSITION_Z),
+            x: xyz[0],
+            y: xyz[1],
+            z: xyz[2],
         }
     }
 
     pub fn feet_position(&self) -> Vec3 {
+        let xyz = util::read_memory::<[f32; 3]>(self.base_addr, offset::ENTITY_FEET_POSITION);
         Vec3 {
-            x: util::read_memory::<f32>(self.base_addr, offset::FEET_POSITION_X),
-            y: util::read_memory::<f32>(self.base_addr, offset::FEET_POSITION_Y),
-            z: util::read_memory::<f32>(self.base_addr, offset::FEET_POSITION_Z),
+            x: xyz[0],
+            y: xyz[1],
+            z: xyz[2],
         }
     }
 }
