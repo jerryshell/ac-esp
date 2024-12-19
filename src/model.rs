@@ -16,10 +16,8 @@ pub struct Entity {
 }
 
 impl Entity {
-    pub fn new(base_ptr: u32) -> Entity {
-        Entity {
-            base_addr: base_ptr,
-        }
+    pub fn new(base_addr: u32) -> Self {
+        Self { base_addr }
     }
 
     pub fn health(&self) -> i32 {
