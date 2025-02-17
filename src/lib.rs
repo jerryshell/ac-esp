@@ -9,15 +9,16 @@ use std::{
     time::{Duration, Instant},
 };
 use windows::{
-    core::s,
+    core::*,
     Win32::{
-        Foundation::{HINSTANCE, RECT},
-        System::{LibraryLoader::GetModuleHandleA, SystemServices::DLL_PROCESS_ATTACH},
-        UI::WindowsAndMessaging::{FindWindowA, GetWindowInfo, WINDOWINFO},
+        Foundation::*,
+        System::{LibraryLoader::*, SystemServices::*},
+        UI::WindowsAndMessaging::*,
     },
 };
 
 const FRAME_RATE: u64 = 60;
+const TICK_RATE: Duration = Duration::from_millis(1000 / FRAME_RATE);
 
 fn run() -> Result<()> {
     let draw_rect_list = Arc::new(RwLock::new(Vec::<RECT>::with_capacity(32)));
@@ -35,11 +36,10 @@ fn run() -> Result<()> {
             window_info.rcClient.right,
             window_info.rcClient.bottom,
             draw_rect_list_clone,
-            FRAME_RATE,
             true,
-        );
-        overlay.pen_width = 2;
-        let _ = overlay.window_loop();
+        )
+        .unwrap();
+        let _ = overlay.run();
     });
 
     let window_width = window_info.rcClient.right - window_info.rcClient.left;
@@ -67,7 +67,6 @@ fn read_game_data_loop(
     window_height: i32,
     draw_rect_list: Arc<RwLock<Vec<RECT>>>,
 ) {
-    let tick_rate = Duration::from_millis(1000 / FRAME_RATE);
     let mut last_tick = Instant::now();
     loop {
         let player_count = util::read_memory::<u32>(module_base_addr, offset::PLAYER_COUNT);
@@ -116,7 +115,7 @@ fn read_game_data_loop(
             draw_rect_list.extend(new_draw_rect_list);
         }
 
-        let timeout = tick_rate.saturating_sub(last_tick.elapsed());
+        let timeout = TICK_RATE.saturating_sub(last_tick.elapsed());
         thread::sleep(timeout);
         last_tick = Instant::now();
     }

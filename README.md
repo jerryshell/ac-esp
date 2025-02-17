@@ -38,6 +38,7 @@ cross build --release --target=i686-pc-windows-gnu
 - [About Windows](https://learn.microsoft.com/en-us/windows/win32/winmsg/about-windows)
 - [Rust for Windows](https://kennykerr.ca/rust-getting-started)
 - [Windows GDI](https://learn.microsoft.com/en-us/windows/win32/gdi/windows-gdi)
+- [Windows Direct2D](https://learn.microsoft.com/en-us/windows/win32/direct2d/direct2d-portal)
 
 ## License
 

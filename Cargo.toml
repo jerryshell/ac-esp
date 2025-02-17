@@ -1,21 +1,21 @@
 [package]
-name = "ac-esp"
-version = "0.1.2"
 edition = "2021"
+name = "ac-esp"
+version = "0.2.0"
 
 [lib]
 crate-type = ["cdylib"]
 
 [dependencies]
 anyhow = "*"
-windows = { version = "*", features = [
-    "Win32_System_LibraryLoader",
-    "Win32_System_SystemServices",
-] }
-windows-ez-overlay = { git = "https://github.com/jerryshell/windows-ez-overlay" }
+windows = {git = "https://github.com/microsoft/windows-rs", features = [
+  "Win32_System_LibraryLoader",
+  "Win32_System_SystemServices",
+]}
+windows-ez-overlay = {git = "https://github.com/jerryshell/windows-ez-overlay"}
 
 [profile.release]
-lto = true
-strip = true
-panic = "abort"
 codegen-units = 1
+lto = true
+panic = "abort"
+strip = true
