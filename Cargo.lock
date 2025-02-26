@@ -13,9 +13,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.95"
+version = "1.0.96"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "34ac096ce696dc2fcabef30516bb13c0a68a11d30131d3df6f04711467681b04"
+checksum = "6b964d184e89d9b6b67dd2715bc8e74cf3107fb2b529990c90cf517326150bf4"
 
 [[package]]
 name = "proc-macro2"
@@ -48,14 +48,14 @@ dependencies = [
 
 [[package]]
 name = "unicode-ident"
-version = "1.0.16"
+version = "1.0.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a210d160f08b701c8721ba1c726c11662f877ea6b7094007e1ca9a1041945034"
+checksum = "00e2473a93778eb0bad35909dff6a10d28e63f792f16ed15e404fca9d5eeedbe"
 
 [[package]]
 name = "windows"
-version = "0.59.0"
-source = "git+https://github.com/microsoft/windows-rs#4e78b29fab6d4242648df2f72b22237e661bd9a4"
+version = "0.60.0"
+source = "git+https://github.com/microsoft/windows-rs#299d421ba55e947adc8fa647d0ff95876a9bd051"
 dependencies = [
  "windows-collections",
  "windows-core",
@@ -66,16 +66,16 @@ dependencies = [
 
 [[package]]
 name = "windows-collections"
-version = "0.1.0"
-source = "git+https://github.com/microsoft/windows-rs#4e78b29fab6d4242648df2f72b22237e661bd9a4"
+version = "0.1.1"
+source = "git+https://github.com/microsoft/windows-rs#299d421ba55e947adc8fa647d0ff95876a9bd051"
 dependencies = [
  "windows-core",
 ]
 
 [[package]]
 name = "windows-core"
-version = "0.59.0"
-source = "git+https://github.com/microsoft/windows-rs#4e78b29fab6d4242648df2f72b22237e661bd9a4"
+version = "0.60.1"
+source = "git+https://github.com/microsoft/windows-rs#299d421ba55e947adc8fa647d0ff95876a9bd051"
 dependencies = [
  "windows-implement",
  "windows-interface",
@@ -87,15 +87,15 @@ dependencies = [
 [[package]]
 name = "windows-ez-overlay"
 version = "0.2.0"
-source = "git+https://github.com/jerryshell/windows-ez-overlay#fd870c0be81b229dcf7551b551ad07cea21561dd"
+source = "git+https://github.com/jerryshell/windows-ez-overlay#2e6738ea62eb84b66335644187e09688f976dddd"
 dependencies = [
  "windows",
 ]
 
 [[package]]
 name = "windows-future"
-version = "0.1.0"
-source = "git+https://github.com/microsoft/windows-rs#4e78b29fab6d4242648df2f72b22237e661bd9a4"
+version = "0.1.1"
+source = "git+https://github.com/microsoft/windows-rs#299d421ba55e947adc8fa647d0ff95876a9bd051"
 dependencies = [
  "windows-core",
  "windows-link",
@@ -104,7 +104,7 @@ dependencies = [
 [[package]]
 name = "windows-implement"
 version = "0.59.0"
-source = "git+https://github.com/microsoft/windows-rs#4e78b29fab6d4242648df2f72b22237e661bd9a4"
+source = "git+https://github.com/microsoft/windows-rs#299d421ba55e947adc8fa647d0ff95876a9bd051"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -114,7 +114,7 @@ dependencies = [
 [[package]]
 name = "windows-interface"
 version = "0.59.0"
-source = "git+https://github.com/microsoft/windows-rs#4e78b29fab6d4242648df2f72b22237e661bd9a4"
+source = "git+https://github.com/microsoft/windows-rs#299d421ba55e947adc8fa647d0ff95876a9bd051"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -124,12 +124,12 @@ dependencies = [
 [[package]]
 name = "windows-link"
 version = "0.1.0"
-source = "git+https://github.com/microsoft/windows-rs#4e78b29fab6d4242648df2f72b22237e661bd9a4"
+source = "git+https://github.com/microsoft/windows-rs#299d421ba55e947adc8fa647d0ff95876a9bd051"
 
 [[package]]
 name = "windows-numerics"
-version = "0.1.0"
-source = "git+https://github.com/microsoft/windows-rs#4e78b29fab6d4242648df2f72b22237e661bd9a4"
+version = "0.1.1"
+source = "git+https://github.com/microsoft/windows-rs#299d421ba55e947adc8fa647d0ff95876a9bd051"
 dependencies = [
  "windows-core",
  "windows-link",
@@ -137,16 +137,16 @@ dependencies = [
 
 [[package]]
 name = "windows-result"
-version = "0.3.0"
-source = "git+https://github.com/microsoft/windows-rs#4e78b29fab6d4242648df2f72b22237e661bd9a4"
+version = "0.3.1"
+source = "git+https://github.com/microsoft/windows-rs#299d421ba55e947adc8fa647d0ff95876a9bd051"
 dependencies = [
  "windows-link",
 ]
 
 [[package]]
 name = "windows-strings"
-version = "0.3.0"
-source = "git+https://github.com/microsoft/windows-rs#4e78b29fab6d4242648df2f72b22237e661bd9a4"
+version = "0.3.1"
+source = "git+https://github.com/microsoft/windows-rs#299d421ba55e947adc8fa647d0ff95876a9bd051"
 dependencies = [
  "windows-link",
 ]

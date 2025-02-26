@@ -9,12 +9,12 @@ use std::{
     time::{Duration, Instant},
 };
 use windows::{
-    core::*,
     Win32::{
         Foundation::*,
         System::{LibraryLoader::*, SystemServices::*},
         UI::WindowsAndMessaging::*,
     },
+    core::*,
 };
 
 const FRAME_RATE: u64 = 60;
@@ -121,7 +121,7 @@ fn read_game_data_loop(
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 extern "system" fn DllMain(_dll_module: HINSTANCE, call_reason: u32, _reserved: *mut ()) -> bool {
     if call_reason == DLL_PROCESS_ATTACH {
         thread::spawn(move || {
