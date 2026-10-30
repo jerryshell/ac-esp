@@ -23,7 +23,6 @@ pub struct Overlay {
     target: Option<ID2D1DeviceContext>,
     swapchain: Option<IDXGISwapChain1>,
     brush: Option<ID2D1SolidColorBrush>,
-    visible: bool,
 }
 
 impl Overlay {
@@ -56,7 +55,6 @@ impl Overlay {
             target: None,
             swapchain: None,
             brush: None,
-            visible: false,
         })
     }
 
@@ -77,7 +75,11 @@ impl Overlay {
             let window_height = self.window_rect.bottom - self.window_rect.top;
 
             let handle = CreateWindowExA(
-                WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_NOREDIRECTIONBITMAP,
+                WS_EX_TOPMOST
+                    | WS_EX_TRANSPARENT
+                    | WS_EX_NOREDIRECTIONBITMAP
+                    | WS_EX_NOACTIVATE
+                    | WS_EX_TOOLWINDOW,
                 window_class_name,
                 s!("EZ Overlay"),
                 WS_POPUP | WS_VISIBLE,
@@ -96,22 +98,12 @@ impl Overlay {
 
             let mut message = MSG::default();
             loop {
-                if self.visible {
-                    self.render()?;
+                self.render()?;
 
-                    while PeekMessageA(&mut message, None, 0, 0, PM_REMOVE).into() {
-                        if message.message == WM_QUIT {
-                            return Ok(());
-                        }
-                        DispatchMessageA(&message);
-                    }
-                } else {
-                    _ = GetMessageA(&mut message, None, 0, 0);
-
+                while PeekMessageA(&mut message, None, 0, 0, PM_REMOVE).into() {
                     if message.message == WM_QUIT {
                         return Ok(());
                     }
-
                     DispatchMessageA(&message);
                 }
             }
@@ -147,12 +139,10 @@ impl Overlay {
             target.EndDraw(None, None)?;
         }
 
-        if let Err(error) = self.present(1, DXGI_PRESENT(0)) {
-            if error.code() == DXGI_STATUS_OCCLUDED {
-                self.visible = false;
-            } else {
-                self.release_device();
-            }
+        if let Err(error) = self.present(1, DXGI_PRESENT(0))
+            && error.code() != DXGI_STATUS_OCCLUDED
+        {
+            self.release_device();
         }
 
         Ok(())
@@ -237,16 +227,8 @@ impl Overlay {
                     self.render().unwrap();
                     LRESULT(0)
                 }
-                WM_USER => {
-                    if self.present(0, DXGI_PRESENT_TEST).is_ok() {
-                        self.visible = true;
-                    }
-                    LRESULT(0)
-                }
-                WM_ACTIVATE => {
-                    self.visible = true;
-                    LRESULT(0)
-                }
+                WM_NCHITTEST => LRESULT(HTTRANSPARENT as isize),
+                WM_MOUSEACTIVATE => LRESULT(MA_NOACTIVATE as isize),
                 WM_DESTROY => {
                     PostQuitMessage(0);
                     LRESULT(0)
