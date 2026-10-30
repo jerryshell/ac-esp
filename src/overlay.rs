@@ -153,7 +153,10 @@ impl Overlay {
             self.visual = Some(visual);
         }
 
-        let target = self.target.as_ref().unwrap();
+        let Some(target) = self.target.as_ref() else {
+            return Ok(());
+        };
+
         unsafe { target.BeginDraw() };
         self.draw(target)?;
 
@@ -184,7 +187,11 @@ impl Overlay {
     }
 
     fn present(&self, sync: u32, flags: DXGI_PRESENT) -> Result<()> {
-        unsafe { self.swapchain.as_ref().unwrap().Present(sync, flags).ok() }
+        let Some(swapchain) = self.swapchain.as_ref() else {
+            return Ok(());
+        };
+
+        unsafe { swapchain.Present(sync, flags).ok() }
     }
 
     fn draw(&self, target: &ID2D1DeviceContext) -> Result<()> {
@@ -196,7 +203,10 @@ impl Overlay {
                 a: 0.0,
             }));
 
-            let brush = self.brush.as_ref().unwrap();
+            let Some(brush) = self.brush.as_ref() else {
+                return Ok(());
+            };
+
             let boxes = (self.boxes)();
             boxes.iter().for_each(|rect| {
                 target.DrawRectangle(
@@ -238,12 +248,12 @@ impl Overlay {
                 WM_PAINT => {
                     let mut ps = PAINTSTRUCT::default();
                     BeginPaint(self.handle, &mut ps);
-                    self.render().unwrap();
+                    _ = self.render();
                     _ = EndPaint(self.handle, &ps);
                     LRESULT(0)
                 }
                 WM_DISPLAYCHANGE => {
-                    self.render().unwrap();
+                    _ = self.render();
                     LRESULT(0)
                 }
                 WM_NCHITTEST => LRESULT(HTTRANSPARENT as isize),
@@ -340,7 +350,7 @@ fn create_device_with_type(drive_type: D3D_DRIVER_TYPE) -> Result<ID3D11Device> 
             None,
             None,
         )
-        .map(|()| device.unwrap())
+        .and_then(|()| device.ok_or_else(|| Error::from(E_FAIL)))
     }
 }
 
