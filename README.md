@@ -16,6 +16,8 @@ Download: [AssaultCube v1.3.0.2 Lockdown Edition](https://github.com/assaultcube
 cargo build --release --target=i686-pc-windows-msvc
 ```
 
+`.cargo/config.toml` pins `i686-pc-windows-msvc` as the default target, because AssaultCube runs as a 32-bit process.
+
 or
 
 ```sh
