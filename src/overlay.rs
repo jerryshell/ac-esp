@@ -1,4 +1,3 @@
-use std::sync::{Arc, RwLock};
 use windows::{
     Win32::Foundation::*, Win32::Graphics::Direct2D::Common::*, Win32::Graphics::Direct2D::*,
     Win32::Graphics::Direct3D::*, Win32::Graphics::Direct3D11::*,
@@ -11,7 +10,7 @@ pub struct Overlay {
     handle: HWND,
 
     window_rect: RECT,
-    draw_rect_list: Arc<RwLock<Vec<RECT>>>,
+    boxes: Box<dyn Fn() -> Vec<RECT>>,
     draw_bottom_line_flag: bool,
 
     factory: ID2D1Factory1,
@@ -49,7 +48,7 @@ impl Overlay {
         top: i32,
         right: i32,
         bottom: i32,
-        draw_rect_list: Arc<RwLock<Vec<RECT>>>,
+        boxes: Box<dyn Fn() -> Vec<RECT>>,
         draw_bottom_line_flag: bool,
     ) -> Result<Self> {
         let factory = create_factory()?;
@@ -63,7 +62,7 @@ impl Overlay {
                 right,
                 bottom,
             },
-            draw_rect_list,
+            boxes,
             draw_bottom_line_flag,
             factory,
             style,
@@ -198,11 +197,8 @@ impl Overlay {
             }));
 
             let brush = self.brush.as_ref().unwrap();
-            let draw_rect_list = {
-                let draw_rect_list_lock = self.draw_rect_list.read().unwrap();
-                draw_rect_list_lock.clone()
-            };
-            draw_rect_list.iter().for_each(|rect| {
+            let boxes = (self.boxes)();
+            boxes.iter().for_each(|rect| {
                 target.DrawRectangle(
                     &D2D_RECT_F {
                         left: rect.left as f32,
