@@ -10,6 +10,8 @@ Download: [AssaultCube v1.3.0.2 Lockdown Edition](https://github.com/assaultcube
 2. Run AssaultCube in **Windowed Mode**
 3. Inject `ac_esp.dll` into `ac_client.exe` ( You can do this with [System Informer](https://github.com/winsiderss/systeminformer) )
 
+To load a new build, unload the old copy first. Windows keeps the module that was already loaded from the same path.
+
 ## Build DLL
 
 ```sh

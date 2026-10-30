@@ -79,8 +79,9 @@ impl Overlay {
                 lpfnWndProc: Some(Self::wndproc),
                 ..Default::default()
             };
-            let atom = RegisterClassA(&window_class);
-            debug_assert!(atom != 0);
+            if RegisterClassA(&window_class) == 0 {
+                return Err(Error::from_thread());
+            }
 
             let window_width = self.window_rect.right - self.window_rect.left;
             let window_height = self.window_rect.bottom - self.window_rect.top;
