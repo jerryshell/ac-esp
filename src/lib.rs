@@ -1,5 +1,6 @@
 mod model;
 mod offset;
+pub mod overlay;
 mod util;
 
 use anyhow::Result;
@@ -30,7 +31,7 @@ fn run() -> Result<()> {
 
     let draw_rect_list_clone = Arc::clone(&draw_rect_list);
     thread::spawn(move || {
-        let mut overlay = windows_ez_overlay::Overlay::new(
+        let mut overlay = overlay::Overlay::new(
             window_info.rcClient.left,
             window_info.rcClient.top,
             window_info.rcClient.right,

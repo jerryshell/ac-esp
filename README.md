@@ -1,9 +1,5 @@
 # AssaultCube ESP DLL with Rust 🦀
 
-Bilibili video: [BV1dN4y1e7Me](https://www.bilibili.com/video/BV1dN4y1e7Me)
-
-YouTube video: [WJ23sV4e7tw](https://www.youtube.com/watch?v=WJ23sV4e7tw)
-
 Applicable game version: **1.3.0.2**
 
 ## How to use
@@ -24,6 +20,14 @@ or
 cross build --release --target=i686-pc-windows-gnu
 ```
 
+## Test
+
+```sh
+cargo test
+```
+
+The overlay test opens a 1920x1080 window, animates a few rectangles, then exits.
+
 ## Screenshot
 
 ![screenshot](img/screenshot.jpg)
@@ -31,7 +35,8 @@ cross build --release --target=i686-pc-windows-gnu
 ## Related
 
 - [ac-aimbot](https://github.com/jerryshell/ac-aimbot)
-- [windows-ez-overlay](https://github.com/jerryshell/windows-ez-overlay)
+
+The Direct2D overlay lives in `src/overlay.rs`, merged from the former [windows-ez-overlay](https://github.com/jerryshell/windows-ez-overlay) crate.
 
 ## References
 
