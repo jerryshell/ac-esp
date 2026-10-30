@@ -1,7 +1,8 @@
 use std::sync::{Arc, RwLock};
 use windows::{
     Win32::Foundation::*, Win32::Graphics::Direct2D::Common::*, Win32::Graphics::Direct2D::*,
-    Win32::Graphics::Direct3D::*, Win32::Graphics::Direct3D11::*, Win32::Graphics::Dxgi::Common::*,
+    Win32::Graphics::Direct3D::*, Win32::Graphics::Direct3D11::*,
+    Win32::Graphics::DirectComposition::*, Win32::Graphics::Dxgi::Common::*,
     Win32::Graphics::Dxgi::*, Win32::Graphics::Gdi::*, Win32::UI::WindowsAndMessaging::*, core::*,
 };
 use windows_numerics::Vector2;
@@ -16,6 +17,9 @@ pub struct Overlay {
     factory: ID2D1Factory1,
     style: ID2D1StrokeStyle1,
 
+    composition: Option<IDCompositionDevice>,
+    composition_target: Option<IDCompositionTarget>,
+    visual: Option<IDCompositionVisual>,
     target: Option<ID2D1DeviceContext>,
     swapchain: Option<IDXGISwapChain1>,
     brush: Option<ID2D1SolidColorBrush>,
@@ -46,6 +50,9 @@ impl Overlay {
             draw_bottom_line_flag,
             factory,
             style,
+            composition: None,
+            composition_target: None,
+            visual: None,
             target: None,
             swapchain: None,
             brush: None,
@@ -70,7 +77,7 @@ impl Overlay {
             let window_height = self.window_rect.bottom - self.window_rect.top;
 
             let handle = CreateWindowExA(
-                WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_LAYERED,
+                WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_NOREDIRECTIONBITMAP,
                 window_class_name,
                 s!("EZ Overlay"),
                 WS_POPUP | WS_VISIBLE,
@@ -86,8 +93,6 @@ impl Overlay {
 
             debug_assert!(!handle.is_invalid());
             debug_assert!(handle == self.handle);
-
-            SetLayeredWindowAttributes(handle, COLORREF(0), 0, LWA_COLORKEY)?;
 
             let mut message = MSG::default();
             loop {
@@ -118,12 +123,20 @@ impl Overlay {
             let device = create_device()?;
             let target = create_render_target(&self.factory, &device)?;
 
-            let swapchain = create_swapchain(&device, self.handle)?;
+            let width = (self.window_rect.right - self.window_rect.left) as u32;
+            let height = (self.window_rect.bottom - self.window_rect.top) as u32;
+            let swapchain = create_swapchain(&device, width, height)?;
             create_swapchain_bitmap(&swapchain, &target)?;
+
+            let (composition, composition_target, visual) =
+                create_composition(&device, &swapchain, self.handle)?;
 
             self.brush = create_brush(&target).ok();
             self.target = Some(target);
             self.swapchain = Some(swapchain);
+            self.composition = Some(composition);
+            self.composition_target = Some(composition_target);
+            self.visual = Some(visual);
         }
 
         let target = self.target.as_ref().unwrap();
@@ -148,6 +161,9 @@ impl Overlay {
     fn release_device(&mut self) {
         self.target = None;
         self.swapchain = None;
+        self.composition = None;
+        self.composition_target = None;
+        self.visual = None;
         self.release_device_resources();
     }
 
@@ -268,14 +284,14 @@ impl Overlay {
 
 fn create_brush(target: &ID2D1DeviceContext) -> Result<ID2D1SolidColorBrush> {
     let color = D2D1_COLOR_F {
-        r: 0.92,
-        g: 0.38,
-        b: 0.208,
+        r: 0.15,
+        g: 1.0,
+        b: 0.35,
         a: 1.0,
     };
 
     let properties = D2D1_BRUSH_PROPERTIES {
-        opacity: 0.8,
+        opacity: 1.0,
         ..Default::default()
     };
 
@@ -379,10 +395,35 @@ fn create_swapchain_bitmap(swapchain: &IDXGISwapChain1, target: &ID2D1DeviceCont
     Ok(())
 }
 
-fn create_swapchain(device: &ID3D11Device, window: HWND) -> Result<IDXGISwapChain1> {
+fn create_composition(
+    device: &ID3D11Device,
+    swapchain: &IDXGISwapChain1,
+    window: HWND,
+) -> Result<(
+    IDCompositionDevice,
+    IDCompositionTarget,
+    IDCompositionVisual,
+)> {
+    unsafe {
+        let dxgi_device: IDXGIDevice = device.cast()?;
+        let composition: IDCompositionDevice = DCompositionCreateDevice(&dxgi_device)?;
+        let target = composition.CreateTargetForHwnd(window, true)?;
+        let visual = composition.CreateVisual()?;
+
+        visual.SetContent(swapchain)?;
+        target.SetRoot(&visual)?;
+        composition.Commit()?;
+
+        Ok((composition, target, visual))
+    }
+}
+
+fn create_swapchain(device: &ID3D11Device, width: u32, height: u32) -> Result<IDXGISwapChain1> {
     let factory = get_dxgi_factory(device)?;
 
     let props = DXGI_SWAP_CHAIN_DESC1 {
+        Width: width,
+        Height: height,
         Format: DXGI_FORMAT_B8G8R8A8_UNORM,
         SampleDesc: DXGI_SAMPLE_DESC {
             Count: 1,
@@ -390,9 +431,10 @@ fn create_swapchain(device: &ID3D11Device, window: HWND) -> Result<IDXGISwapChai
         },
         BufferUsage: DXGI_USAGE_RENDER_TARGET_OUTPUT,
         BufferCount: 2,
-        SwapEffect: DXGI_SWAP_EFFECT_DISCARD,
+        SwapEffect: DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL,
+        AlphaMode: DXGI_ALPHA_MODE_PREMULTIPLIED,
         ..Default::default()
     };
 
-    unsafe { factory.CreateSwapChainForHwnd(device, window, &props, None, None) }
+    unsafe { factory.CreateSwapChainForComposition(device, &props, None) }
 }
