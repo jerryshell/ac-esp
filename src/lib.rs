@@ -32,7 +32,8 @@ fn run() -> Result<()> {
     };
 
     let module_base_addr = unsafe { GetModuleHandleA(s!("ac_client.exe")).map(|h| h.0 as u32) }?;
-    let entity_list_base_addr = ac_client::read::<u32>(module_base_addr, ac_client::ENTITY_LIST);
+    let entity_list_base_addr =
+        ac_client::read::<u32>(module_base_addr, ac_client::ENTITY_LIST).unwrap_or_default();
 
     let mut overlay = overlay::Overlay::new(
         window_info.rcClient.left,
@@ -51,12 +52,14 @@ fn run() -> Result<()> {
 }
 
 fn esp_boxes(module_base_addr: u32, entity_list_base_addr: u32, viewport: Viewport) -> Vec<RECT> {
-    let player_count = ac_client::read::<u32>(module_base_addr, ac_client::PLAYER_COUNT);
-    let view_matrix = ac_client::read::<[f32; 16]>(module_base_addr, ac_client::VIEW_MATRIX);
+    let player_count =
+        ac_client::read::<u32>(module_base_addr, ac_client::PLAYER_COUNT).unwrap_or_default();
+    let view_matrix =
+        ac_client::read::<[f32; 16]>(module_base_addr, ac_client::VIEW_MATRIX).unwrap_or_default();
 
-    (1..player_count)
+    (1..player_count.min(ac_client::MAX_ENTITIES))
         .filter_map(|index| {
-            let entity = ac_client::read_entity(entity_list_base_addr, index);
+            let entity = ac_client::read_entity(entity_list_base_addr, index)?;
             esp::screen_box(&entity, view_matrix, viewport)
         })
         .collect()
