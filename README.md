@@ -2,6 +2,8 @@
 
 Applicable game version: **1.3.0.2**
 
+Download: [AssaultCube v1.3.0.2 Lockdown Edition](https://github.com/assaultcube/AC/releases/download/v1.3.0.2/AssaultCube_v1.3.0.2_LockdownEdition.exe)
+
 ## How to use
 
 1. Download `ac_esp.dll` from [releases](https://github.com/jerryshell/ac-esp/releases)
