@@ -1,17 +1,53 @@
 use std::time::{Duration, Instant};
-use windows::Win32::Foundation::RECT;
+use windows::{
+    Win32::{Foundation::*, UI::WindowsAndMessaging::*},
+    core::*,
+};
+
+unsafe extern "system" fn default_proc(
+    hwnd: HWND,
+    message: u32,
+    wparam: WPARAM,
+    lparam: LPARAM,
+) -> LRESULT {
+    unsafe { DefWindowProcA(hwnd, message, wparam, lparam) }
+}
 
 #[test]
 fn overlay_test() {
     let start = Instant::now();
 
-    std::thread::spawn(move || {
-        let mut overlay = ac_esp::overlay::Overlay::new(
+    let game = unsafe {
+        let class = s!("overlayTestGame");
+        let window_class = WNDCLASSA {
+            lpszClassName: class,
+            lpfnWndProc: Some(default_proc),
+            ..Default::default()
+        };
+        RegisterClassA(&window_class);
+
+        CreateWindowExA(
+            WINDOW_EX_STYLE(0),
+            class,
+            s!("game"),
+            WS_POPUP | WS_VISIBLE,
             0,
             0,
             1920,
             1080,
-            Box::new(move || {
+            None,
+            None,
+            None,
+            None,
+        )
+        .unwrap()
+        .0 as isize
+    };
+
+    std::thread::spawn(move || {
+        let mut overlay = ac_esp::overlay::Overlay::new(
+            HWND(game as *mut _),
+            Box::new(move |_width, _height| {
                 let offset = (start.elapsed().as_millis() as i32 * 60) / 1000;
 
                 vec![

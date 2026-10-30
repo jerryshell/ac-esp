@@ -8,9 +8,10 @@ use windows_numerics::Vector2;
 
 pub struct Overlay {
     handle: HWND,
+    game_window: HWND,
 
     window_rect: RECT,
-    boxes: Box<dyn Fn() -> Vec<RECT>>,
+    boxes: Box<dyn Fn(i32, i32) -> Vec<RECT>>,
     draw_bottom_line_flag: bool,
 
     factory: ID2D1Factory1,
@@ -44,11 +45,8 @@ impl Overlay {
 
 impl Overlay {
     pub fn new(
-        left: i32,
-        top: i32,
-        right: i32,
-        bottom: i32,
-        boxes: Box<dyn Fn() -> Vec<RECT>>,
+        game_window: HWND,
+        boxes: Box<dyn Fn(i32, i32) -> Vec<RECT>>,
         draw_bottom_line_flag: bool,
     ) -> Result<Self> {
         let factory = create_factory()?;
@@ -56,12 +54,8 @@ impl Overlay {
 
         Ok(Overlay {
             handle: Default::default(),
-            window_rect: RECT {
-                left,
-                top,
-                right,
-                bottom,
-            },
+            game_window,
+            window_rect: client_rect(game_window)?,
             boxes,
             draw_bottom_line_flag,
             factory,
@@ -120,6 +114,7 @@ impl Overlay {
                     return Ok(());
                 }
 
+                self.follow_game_window()?;
                 self.render()?;
 
                 while PeekMessageA(&mut message, None, 0, 0, PM_REMOVE).into() {
@@ -130,6 +125,55 @@ impl Overlay {
                 }
             }
         }
+    }
+
+    fn follow_game_window(&mut self) -> Result<()> {
+        if unsafe { IsIconic(self.game_window).as_bool() } {
+            return Ok(());
+        }
+
+        let rect = client_rect(self.game_window)?;
+
+        if rect == self.window_rect {
+            return Ok(());
+        }
+
+        let width = rect.right - rect.left;
+        let height = rect.bottom - rect.top;
+
+        if width <= 0 || height <= 0 {
+            return Ok(());
+        }
+
+        self.window_rect = rect;
+
+        unsafe {
+            SetWindowPos(
+                self.handle,
+                Some(HWND_TOPMOST),
+                rect.left,
+                rect.top,
+                width,
+                height,
+                SWP_NOACTIVATE,
+            )?;
+        }
+
+        if let (Some(swapchain), Some(target)) = (&self.swapchain, &self.target) {
+            unsafe {
+                target.SetTarget(None);
+                swapchain.ResizeBuffers(
+                    0,
+                    width as u32,
+                    height as u32,
+                    DXGI_FORMAT_UNKNOWN,
+                    DXGI_SWAP_CHAIN_FLAG(0),
+                )?;
+                create_swapchain_bitmap(swapchain, target)?;
+            }
+        }
+
+        Ok(())
     }
 
     fn render(&mut self) -> Result<()> {
@@ -207,7 +251,9 @@ impl Overlay {
                 return Ok(());
             };
 
-            let boxes = (self.boxes)();
+            let width = self.window_rect.right - self.window_rect.left;
+            let height = self.window_rect.bottom - self.window_rect.top;
+            let boxes = (self.boxes)(width, height);
             boxes.iter().for_each(|rect| {
                 target.DrawRectangle(
                     &D2D_RECT_F {
@@ -290,6 +336,23 @@ impl Overlay {
 
             DefWindowProcA(window, message, wparam, lparam)
         }
+    }
+}
+
+fn client_rect(window: HWND) -> Result<RECT> {
+    unsafe {
+        let mut rect = RECT::default();
+        GetClientRect(window, &mut rect)?;
+
+        let mut origin = POINT::default();
+        ClientToScreen(window, &mut origin).ok()?;
+
+        Ok(RECT {
+            left: origin.x,
+            top: origin.y,
+            right: origin.x + rect.right,
+            bottom: origin.y + rect.bottom,
+        })
     }
 }
 

@@ -23,24 +23,19 @@ static DONE: AtomicIsize = AtomicIsize::new(0);
 fn run() -> Result<()> {
     let game_window = unsafe { FindWindowA(None, s!("AssaultCube")) }?;
 
-    let mut window_info = WINDOWINFO::default();
-    unsafe { GetWindowInfo(game_window, &mut window_info) }?;
-
-    let viewport = Viewport {
-        width: window_info.rcClient.right - window_info.rcClient.left,
-        height: window_info.rcClient.bottom - window_info.rcClient.top,
-    };
-
     let module_base_addr = unsafe { GetModuleHandleA(s!("ac_client.exe")).map(|h| h.0 as u32) }?;
     let entity_list_base_addr =
         ac_client::read::<u32>(module_base_addr, ac_client::ENTITY_LIST).unwrap_or_default();
 
     let mut overlay = overlay::Overlay::new(
-        window_info.rcClient.left,
-        window_info.rcClient.top,
-        window_info.rcClient.right,
-        window_info.rcClient.bottom,
-        Box::new(move || esp_boxes(module_base_addr, entity_list_base_addr, viewport)),
+        game_window,
+        Box::new(move |width, height| {
+            esp_boxes(
+                module_base_addr,
+                entity_list_base_addr,
+                Viewport { width, height },
+            )
+        }),
         true,
     )?;
 
