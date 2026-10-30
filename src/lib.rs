@@ -5,14 +5,17 @@ pub mod overlay;
 use anyhow::Result;
 use esp::Viewport;
 use std::{
-    sync::{Arc, RwLock},
+    sync::{
+        Arc, RwLock,
+        atomic::{AtomicBool, AtomicIsize, Ordering},
+    },
     thread,
     time::{Duration, Instant},
 };
 use windows::{
     Win32::{
         Foundation::*,
-        System::{LibraryLoader::*, SystemServices::*},
+        System::{LibraryLoader::*, SystemServices::*, Threading::*},
         UI::WindowsAndMessaging::*,
     },
     core::*,
@@ -20,6 +23,10 @@ use windows::{
 
 const FRAME_RATE: u64 = 60;
 const TICK_RATE: Duration = Duration::from_millis(1000 / FRAME_RATE);
+
+static SHUTDOWN: AtomicBool = AtomicBool::new(false);
+static GAME_DONE: AtomicIsize = AtomicIsize::new(0);
+static OVERLAY_DONE: AtomicIsize = AtomicIsize::new(0);
 
 fn run() -> Result<()> {
     let draw_rect_list = Arc::new(RwLock::new(Vec::<RECT>::with_capacity(32)));
@@ -31,16 +38,21 @@ fn run() -> Result<()> {
 
     let draw_rect_list_clone = Arc::clone(&draw_rect_list);
     thread::spawn(move || {
-        let mut overlay = overlay::Overlay::new(
+        if let Ok(mut overlay) = overlay::Overlay::new(
             window_info.rcClient.left,
             window_info.rcClient.top,
             window_info.rcClient.right,
             window_info.rcClient.bottom,
             draw_rect_list_clone,
             true,
-        )
-        .unwrap();
-        let _ = overlay.run();
+        ) {
+            let _ = overlay.run(|| SHUTDOWN.load(Ordering::SeqCst));
+            overlay.destroy_window();
+            std::mem::forget(overlay);
+        }
+
+        signal(OVERLAY_DONE.load(Ordering::SeqCst));
+        unsafe { ExitThread(0) }
     });
 
     let viewport = Viewport {
@@ -70,7 +82,7 @@ fn esp_loop(
 ) {
     let mut last_tick = Instant::now();
 
-    loop {
+    while !SHUTDOWN.load(Ordering::SeqCst) {
         let player_count = ac_client::read::<u32>(module_base_addr, ac_client::PLAYER_COUNT);
         let view_matrix = ac_client::read::<[f32; 16]>(module_base_addr, ac_client::VIEW_MATRIX);
 
@@ -92,12 +104,55 @@ fn esp_loop(
     }
 }
 
+fn signal(handle: isize) {
+    let handle = HANDLE(handle as *mut _);
+
+    if !handle.0.is_null() {
+        _ = unsafe { SetEvent(handle) };
+    }
+}
+
+fn wait(handle: isize) {
+    let handle = HANDLE(handle as *mut _);
+
+    if !handle.0.is_null() {
+        _ = unsafe { WaitForSingleObject(handle, 2000) };
+    }
+}
+
 #[unsafe(no_mangle)]
-extern "system" fn DllMain(_dll_module: HINSTANCE, call_reason: u32, _reserved: *mut ()) -> bool {
-    if call_reason == DLL_PROCESS_ATTACH {
-        thread::spawn(move || {
-            let _ = run();
-        });
+extern "system" fn DllMain(dll_module: HINSTANCE, call_reason: u32, reserved: *mut ()) -> bool {
+    match call_reason {
+        DLL_PROCESS_ATTACH => {
+            _ = unsafe { DisableThreadLibraryCalls(HMODULE(dll_module.0)) };
+
+            let game_done = unsafe { CreateEventW(None, true, false, PCWSTR::null()) };
+            GAME_DONE.store(
+                game_done.map(|handle| handle.0 as isize).unwrap_or(0),
+                Ordering::SeqCst,
+            );
+
+            let overlay_done = unsafe { CreateEventW(None, true, false, PCWSTR::null()) };
+            OVERLAY_DONE.store(
+                overlay_done.map(|handle| handle.0 as isize).unwrap_or(0),
+                Ordering::SeqCst,
+            );
+
+            thread::spawn(|| {
+                let _ = run();
+                signal(GAME_DONE.load(Ordering::SeqCst));
+                unsafe { ExitThread(0) }
+            });
+        }
+        DLL_PROCESS_DETACH => {
+            SHUTDOWN.store(true, Ordering::SeqCst);
+
+            if reserved.is_null() {
+                wait(GAME_DONE.load(Ordering::SeqCst));
+                wait(OVERLAY_DONE.load(Ordering::SeqCst));
+            }
+        }
+        _ => {}
     }
     true
 }

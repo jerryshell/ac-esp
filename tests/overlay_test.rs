@@ -20,7 +20,7 @@ fn overlay_test() {
         std::thread::spawn(move || {
             let mut overlay =
                 ac_esp::overlay::Overlay::new(0, 0, 1920, 1080, rect_list, true).unwrap();
-            overlay.run().unwrap();
+            overlay.run(|| false).unwrap();
         });
     }
 

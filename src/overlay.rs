@@ -25,6 +25,24 @@ pub struct Overlay {
     brush: Option<ID2D1SolidColorBrush>,
 }
 
+impl Drop for Overlay {
+    fn drop(&mut self) {
+        self.destroy_window();
+    }
+}
+
+impl Overlay {
+    pub fn destroy_window(&mut self) {
+        unsafe {
+            if !self.handle.is_invalid() {
+                _ = DestroyWindow(self.handle);
+                self.handle = HWND::default();
+            }
+            _ = UnregisterClassA(s!("ezOverlay"), None);
+        }
+    }
+}
+
 impl Overlay {
     pub fn new(
         left: i32,
@@ -58,7 +76,7 @@ impl Overlay {
         })
     }
 
-    pub fn run(&mut self) -> Result<()> {
+    pub fn run(&mut self, stop: impl Fn() -> bool) -> Result<()> {
         unsafe {
             let window_class_name = s!("ezOverlay");
 
@@ -99,6 +117,10 @@ impl Overlay {
 
             let mut message = MSG::default();
             loop {
+                if stop() {
+                    return Ok(());
+                }
+
                 self.render()?;
 
                 while PeekMessageA(&mut message, None, 0, 0, PM_REMOVE).into() {
