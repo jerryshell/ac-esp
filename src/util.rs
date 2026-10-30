@@ -45,3 +45,104 @@ where
     let data_ptr = (base_addr + offset) as *const T;
     unsafe { *data_ptr }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::model::Vec3;
+
+    const IDENTITY: [f32; 16] = [
+        1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0,
+    ];
+
+    #[test]
+    fn viewport_center_projects_to_screen_center() {
+        let screen = world_to_screen(
+            Vec3 {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            IDENTITY,
+            800,
+            600,
+        )
+        .unwrap();
+
+        assert_eq!((screen.x, screen.y), (400.0, 300.0));
+    }
+
+    #[test]
+    fn world_right_and_up_project_right_and_up() {
+        let screen = world_to_screen(
+            Vec3 {
+                x: 0.5,
+                y: 0.5,
+                z: 0.0,
+            },
+            IDENTITY,
+            800,
+            600,
+        )
+        .unwrap();
+
+        assert_eq!((screen.x, screen.y), (600.0, 150.0));
+    }
+
+    #[test]
+    fn projection_divides_by_w() {
+        let mut matrix = IDENTITY;
+        matrix[15] = 2.0;
+
+        let screen = world_to_screen(
+            Vec3 {
+                x: 1.0,
+                y: -1.0,
+                z: 0.0,
+            },
+            matrix,
+            800,
+            600,
+        )
+        .unwrap();
+
+        assert_eq!((screen.x, screen.y), (600.0, 450.0));
+    }
+
+    #[test]
+    fn projection_reads_matrix_columns_in_order() {
+        let matrix = [
+            0.0, 2.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0,
+        ];
+
+        let screen = world_to_screen(
+            Vec3 {
+                x: 1.0,
+                y: 2.0,
+                z: 5.0,
+            },
+            matrix,
+            800,
+            600,
+        )
+        .unwrap();
+
+        assert_eq!((screen.x, screen.y), (2800.0, -300.0));
+    }
+
+    #[test]
+    fn point_behind_camera_has_no_screen_position() {
+        let screen = world_to_screen(
+            Vec3 {
+                x: 1.0,
+                y: 1.0,
+                z: 0.0,
+            },
+            [0.0; 16],
+            800,
+            600,
+        );
+
+        assert!(screen.is_none());
+    }
+}
